@@ -1,0 +1,4 @@
+node_modules/
+database/amsan.sqlite
+.env
+server_error.log

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMSAN BTP - Dépenses</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>.dark .sidebar-link:hover { background: rgba(59,130,246,0.1); color: #93c5fd; }</style>
+  <script>if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');</script>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 transition-colors duration-200">
+  <div class="flex h-screen">
+    <aside id="sidebar" class="bg-white dark:bg-slate-800 w-64 fixed h-full shadow-lg z-10 -translate-x-full md:translate-x-0 transition-all duration-300 border-r border-gray-200 dark:border-slate-700">
+      <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-lg">A</div>
+          <div><h1 class="text-lg font-bold text-gray-800 dark:text-white">AMSAN BTP</h1><p class="text-xs text-gray-500 dark:text-gray-400">Gestion de chantier</p></div>
+        </div>
+      </div>
+      <nav class="p-3 space-y-1">
+        <a href="index.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-chart-pie w-5 text-center"></i> Tableau de bord</a>
+        <a href="ouvriers.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-users w-5 text-center"></i> Ouvriers</a>
+        <a href="chantiers.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hard-hat w-5 text-center"></i> Chantiers</a>
+        <a href="pointage.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-clipboard-check w-5 text-center"></i> Pointage</a>
+        <a href="depenses.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"><i class="fas fa-coins w-5 text-center"></i> Dépenses</a>
+        <a href="avances.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hand-holding-usd w-5 text-center"></i> Avances</a>
+        <a href="fiche-paie.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-file-invoice w-5 text-center"></i> Fiche de paie</a>
+      </nav>
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
+        <button onclick="toggleDarkMode()" class="sidebar-link flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+          <i class="fas fa-moon w-5 text-center dark:hidden"></i><i class="fas fa-sun w-5 text-center hidden dark:inline"></i>
+          <span class="dark:hidden">Mode sombre</span><span class="hidden dark:inline">Mode clair</span>
+        </button>
+      </div>
+    </aside>
+    <div class="flex-1 md:ml-64 flex flex-col">
+      <header class="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700 p-4 flex items-center gap-3 sticky top-0 z-10">
+        <button id="menuBtn" class="md:hidden text-gray-600 dark:text-gray-300 text-xl"><i class="fas fa-bars"></i></button>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Dépenses</h2>
+      </header>
+      <main class="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 md:p-6 mb-6 transition-all">
+          <h3 class="font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-500"></i> Ajouter une dépense</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+            <input type="date" id="fDate" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            <select id="fChantier" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none"><option value="">Chantier</option></select>
+            <select id="fCategorie" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              <option value="materiaux">Matériaux</option><option value="transport">Transport</option><option value="nourriture">Nourriture</option><option value="location">Location</option><option value="divers">Divers</option>
+            </select>
+            <input type="number" step="0.01" id="fMontant" placeholder="Montant *" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            <input type="text" id="fNote" placeholder="Note" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            <button onclick="addDepense()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all h-12 flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Ajouter</button>
+          </div>
+          <div id="formError" class="mt-3 text-red-500 text-sm hidden"></div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 md:p-6 transition-all">
+          <div class="flex flex-col md:flex-row gap-3 mb-4">
+            <select id="filterChantier" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none flex-1"><option value="">Tous les chantiers</option></select>
+            <select id="filterMois" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              <option value="">Tous les mois</option>
+              <option value="01">Janvier</option><option value="02">Février</option><option value="03">Mars</option><option value="04">Avril</option><option value="05">Mai</option><option value="06">Juin</option>
+              <option value="07">Juillet</option><option value="08">Août</option><option value="09">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+            </select>
+            <select id="filterAnnee" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none"></select>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-gray-300">
+                <tr><th class="text-left p-4 font-medium">Date</th><th class="text-left p-4 font-medium">Chantier</th><th class="text-left p-4 font-medium">Catégorie</th><th class="text-left p-4 font-medium">Montant</th><th class="text-left p-4 font-medium">Note</th><th class="text-left p-4 font-medium">Actions</th></tr>
+              </thead>
+              <tbody id="depensesTable"></tbody>
+            </table>
+          </div>
+          <div class="text-right mt-4 text-lg font-bold text-gray-800 dark:text-white">Total : <span id="totalMontant">0.00</span> MAD</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function toggleDarkMode() { const h=document.documentElement; h.classList.toggle('dark'); localStorage.setItem('darkMode', h.classList.contains('dark')); }
+    document.getElementById('menuBtn')?.addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); });
+    document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+    const yearSel=document.getElementById('filterAnnee');
+    const y=new Date().getFullYear();
+    for(let i=y-2;i<=y+1;i++) { const o=document.createElement('option'); o.value=i; o.textContent=i; if(i===y) o.selected=true; yearSel.appendChild(o); }
+
+    let depenses=[], chantiers=[];
+    async function loadChantiers() {
+      const r=await fetch('/api/chantiers'); chantiers=await r.json();
+      ['fChantier','filterChantier'].forEach(id=>{
+        const sel=document.getElementById(id); const cur=sel.value;
+        sel.innerHTML='<option value="">'+(id==='filterChantier'?'Tous les chantiers':'Chantier')+'</option>'+chantiers.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+        if(cur) sel.value=cur;
+      });
+    }
+    async function loadDepenses() {
+      const chantier_id=document.getElementById('filterChantier').value;
+      const mois=document.getElementById('filterMois').value;
+      const annee=document.getElementById('filterAnnee').value;
+      let url='/api/depenses?';
+      if(chantier_id) url+=`chantier_id=${chantier_id}&`;
+      if(mois&&annee) url+=`mois=${mois}&annee=${annee}&`;
+      const r=await fetch(url); depenses=await r.json(); renderDepenses();
+    }
+    function renderDepenses() {
+      let total=0;
+      document.getElementById('depensesTable').innerHTML=depenses.map(d=>{ total+=d.montant; return `<tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+        <td class="p-4 text-gray-700 dark:text-gray-300">${d.date}</td>
+        <td class="p-4 text-gray-700 dark:text-gray-300">${d.chantier_nom}</td>
+        <td class="p-4"><span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">${d.categorie}</span></td>
+        <td class="p-4 font-medium text-gray-800 dark:text-gray-200">${d.montant.toFixed(2)} MAD</td>
+        <td class="p-4 text-gray-600 dark:text-gray-400">${d.note||'-'}</td>
+        <td class="p-4"><button onclick="deleteDepense(${d.id})" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button></td>
+      </tr>`;}).join('');
+      document.getElementById('totalMontant').textContent=total.toFixed(2);
+    }
+    async function addDepense() {
+      document.getElementById('formError').classList.add('hidden');
+      const data={date:document.getElementById('fDate').value, chantier_id:parseInt(document.getElementById('fChantier').value), categorie:document.getElementById('fCategorie').value, montant:parseFloat(document.getElementById('fMontant').value), note:document.getElementById('fNote').value.trim()};
+      if(!data.date||!data.chantier_id||!data.montant) { showFormError('Veuillez remplir tous les champs obligatoires'); return; }
+      const r=await fetch('/api/depenses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      if(!r.ok) { const e=await r.json(); showFormError(e.error||'Erreur'); return; }
+      document.getElementById('fMontant').value=''; document.getElementById('fNote').value=''; loadDepenses();
+    }
+    function showFormError(m) { const e=document.getElementById('formError'); e.textContent=m; e.classList.remove('hidden'); }
+    async function deleteDepense(id) { if(!confirm('Supprimer cette dépense ?')) return; await fetch(`/api/depenses/${id}`,{method:'DELETE'}); loadDepenses(); }
+    document.getElementById('filterChantier').addEventListener('change', loadDepenses);
+    document.getElementById('filterMois').addEventListener('change', loadDepenses);
+    document.getElementById('filterAnnee').addEventListener('change', loadDepenses);
+    loadChantiers(); loadDepenses();
+  </script>
+</body>
+</html>
