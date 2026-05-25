@@ -98,8 +98,8 @@
           <td class="p-4 text-gray-600 dark:text-gray-400 font-mono text-xs">${o.cin||'-'}</td>
           <td class="p-4 text-gray-600 dark:text-gray-400">${o.telephone||'-'}</td>
           <td class="p-4 text-gray-600 dark:text-gray-400">${o.poste||'-'}</td>
-          <td class="p-4 text-gray-800 dark:text-gray-200">${o.salaire_journalier.toFixed(2)} MAD</td>
-          <td class="p-4 text-gray-800 dark:text-gray-200">${o.tarif_hs.toFixed(2)} MAD</td>
+          <td class="p-4 text-gray-800 dark:text-gray-200">${parseFloat(o.salaire_journalier||0).toFixed(2)} MAD</td>
+          <td class="p-4 text-gray-800 dark:text-gray-200">${parseFloat(o.tarif_hs||0).toFixed(2)} MAD</td>
           <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-medium ${o.actif ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}">${o.actif ? 'Actif' : 'Inactif'}</span></td>
           <td class="p-4"><button onclick="editOuvrier(${o.id})" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-2"><i class="fas fa-edit"></i></button><button onclick="toggleActif(${o.id})" class="text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 mr-2"><i class="fas ${o.actif ? 'fa-eye-slash' : 'fa-eye'}"></i></button><button onclick="deleteOuvrier(${o.id})" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button></td>
         </tr>

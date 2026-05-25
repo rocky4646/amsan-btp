@@ -118,7 +118,7 @@
           <div><span class="text-gray-500 dark:text-gray-400">Ouvrier :</span> <span class="font-medium text-gray-800 dark:text-gray-200">${[data.ouvrier.prenom, data.ouvrier.nom].filter(Boolean).join(' ')}</span></div>
           <div><span class="text-gray-500 dark:text-gray-400">Poste :</span> <span class="font-medium text-gray-800 dark:text-gray-200">${data.ouvrier.poste||'-'}</span></div>
           <div><span class="text-gray-500 dark:text-gray-400">Période :</span> <span class="font-medium text-gray-800 dark:text-gray-200">${moisNom[parseInt(data.periode.mois)-1]} ${data.periode.annee}</span></div>
-          <div><span class="text-gray-500 dark:text-gray-400">Salaire journalier :</span> <span class="font-medium text-gray-800 dark:text-gray-200">${data.salaire_journalier.toFixed(2)} MAD</span></div>
+          <div><span class="text-gray-500 dark:text-gray-400">Salaire journalier :</span> <span class="font-medium text-gray-800 dark:text-gray-200">${parseFloat(data.salaire_journalier||0).toFixed(2)} MAD</span></div>
         </div>
         <table class="w-full text-sm mb-6">
           <thead>
@@ -129,24 +129,24 @@
           </thead>
           <tbody>
             <tr class="border-b border-gray-200 dark:border-slate-700">
-              <td class="p-3 text-gray-700 dark:text-gray-300">Jours travaillés (${data.jours_travailles} jours × ${data.salaire_journalier.toFixed(2)} MAD)</td>
-              <td class="p-3 text-right font-medium text-gray-800 dark:text-gray-200">${data.salaire_normal.toFixed(2)} MAD</td>
+              <td class="p-3 text-gray-700 dark:text-gray-300">Jours travaillés (${data.jours_travailles} jours × ${parseFloat(data.salaire_journalier||0).toFixed(2)} MAD)</td>
+              <td class="p-3 text-right font-medium text-gray-800 dark:text-gray-200">${parseFloat(data.salaire_normal||0).toFixed(2)} MAD</td>
             </tr>
             <tr class="border-b border-gray-200 dark:border-slate-700">
-              <td class="p-3 text-gray-700 dark:text-gray-300">Heures supplémentaires (${data.total_hs.toFixed(1)} h × ${data.tarif_hs.toFixed(2)} MAD)</td>
-              <td class="p-3 text-right font-medium text-gray-800 dark:text-gray-200">${data.montant_hs.toFixed(2)} MAD</td>
+              <td class="p-3 text-gray-700 dark:text-gray-300">Heures supplémentaires (${parseFloat(data.total_hs||0).toFixed(1)} h × ${parseFloat(data.tarif_hs||0).toFixed(2)} MAD)</td>
+              <td class="p-3 text-right font-medium text-gray-800 dark:text-gray-200">${parseFloat(data.montant_hs||0).toFixed(2)} MAD</td>
             </tr>
             <tr class="border-b border-gray-200 dark:border-slate-700 font-semibold">
               <td class="p-3 text-gray-800 dark:text-gray-200">Salaire brut</td>
-              <td class="p-3 text-right text-gray-800 dark:text-gray-200">${data.salaire_brut.toFixed(2)} MAD</td>
+              <td class="p-3 text-right text-gray-800 dark:text-gray-200">${parseFloat(data.salaire_brut||0).toFixed(2)} MAD</td>
             </tr>
             <tr class="border-b border-gray-200 dark:border-slate-700 text-red-600 dark:text-red-400">
               <td class="p-3">Avances déduites</td>
-              <td class="p-3 text-right">- ${data.total_avances.toFixed(2)} MAD</td>
+              <td class="p-3 text-right">- ${parseFloat(data.total_avances||0).toFixed(2)} MAD</td>
             </tr>
             <tr class="bg-blue-50 dark:bg-blue-900/20 font-bold text-lg">
               <td class="p-3 text-blue-800 dark:text-blue-300">Net à payer</td>
-              <td class="p-3 text-right text-blue-800 dark:text-blue-300">${data.net_a_payer.toFixed(2)} MAD</td>
+              <td class="p-3 text-right text-blue-800 dark:text-blue-300">${parseFloat(data.net_a_payer||0).toFixed(2)} MAD</td>
             </tr>
           </tbody>
         </table>

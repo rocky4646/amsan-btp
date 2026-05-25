@@ -151,15 +151,15 @@
         document.getElementById('presentsToday').textContent = presents;
 
         const todayDepenses = depenses.filter(d => d.date === today);
-        const totalDep = todayDepenses.reduce((s, d) => s + d.montant, 0);
+        const totalDep = todayDepenses.reduce((s, d) => s + parseFloat(d.montant||0), 0);
         document.getElementById('depensesToday').textContent = totalDep.toFixed(2);
 
         const thisMonth = allPointages.filter(p => p.date.startsWith(`${year}-${month}`));
-        const totalHS = thisMonth.reduce((s, p) => s + (p.hs || 0), 0);
+        const totalHS = thisMonth.reduce((s, p) => s + parseFloat(p.hs||0), 0);
         document.getElementById('totalHSMonth').textContent = totalHS.toFixed(1) + 'h';
 
         const monthDepenses = depenses.filter(d => d.date.startsWith(`${year}-${month}`));
-        const totalMonthDep = monthDepenses.reduce((s, d) => s + d.montant, 0);
+        const totalMonthDep = monthDepenses.reduce((s, d) => s + parseFloat(d.montant||0), 0);
         document.getElementById('depensesMonth').textContent = totalMonthDep.toFixed(2);
 
         const last5 = allPointages.slice(0, 5);
@@ -178,7 +178,7 @@
             <td class="py-3 text-gray-700 dark:text-gray-300">${d.date}</td>
             <td class="py-3 text-gray-700 dark:text-gray-300">${d.chantier_nom}</td>
             <td class="py-3"><span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">${d.categorie}</span></td>
-            <td class="py-3 font-medium text-gray-800 dark:text-gray-200">${d.montant.toFixed(2)} MAD</td>
+            <td class="py-3 font-medium text-gray-800 dark:text-gray-200">${parseFloat(d.montant||0).toFixed(2)} MAD</td>
           </tr>
         `).join('');
 
@@ -233,7 +233,7 @@
     async function buildDepensesChart(monthDepenses) {
       const cats = ['materiaux','transport','nourriture','location','divers'];
       const labels = ['Matériaux','Transport','Nourriture','Location','Divers'];
-      const data = cats.map(c => monthDepenses.filter(d => d.categorie === c).reduce((s, d) => s + d.montant, 0));
+      const data = cats.map(c => monthDepenses.filter(d => d.categorie === c).reduce((s, d) => s + parseFloat(d.montant||0), 0));
       const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'];
 
       const ctx = document.getElementById('depensesChart').getContext('2d');
