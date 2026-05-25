@@ -10,6 +10,8 @@
   <script>if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');</script>
 </head>
 <body class="bg-gray-50 dark:bg-slate-900 transition-colors duration-200">
+<!-- Overlay mobile -->
+<div id="overlay" class="md:hidden fixed inset-0 bg-black/50 z-[9] hidden" onclick="closeSidebar()"></div>
   <div class="flex h-screen">
     <aside id="sidebar" class="bg-white dark:bg-slate-800 w-64 fixed h-full shadow-lg z-10 -translate-x-full md:translate-x-0 transition-all duration-300 border-r border-gray-200 dark:border-slate-700">
       <div class="p-5 border-b border-gray-200 dark:border-slate-700">
@@ -41,7 +43,7 @@
         <button id="menuBtn" class="md:hidden text-gray-600 dark:text-gray-300 text-xl"><i class="fas fa-bars"></i></button>
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Chantiers</h2>
       </header>
-      <main class="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-y-auto">
+      <main class="pb-20 p-4 md:p-6 max-w-6xl mx-auto w-full overflow-y-auto">
         <div class="mb-6">
           <button onclick="openModal()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all h-12 flex items-center gap-2"><i class="fas fa-plus"></i> Nouveau chantier</button>
         </div>
@@ -84,7 +86,7 @@
 
   <script>
     function toggleDarkMode() { const h=document.documentElement; h.classList.toggle('dark'); localStorage.setItem('darkMode', h.classList.contains('dark')); }
-    document.getElementById('menuBtn')?.addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); });
+    
     let chantiers = [];
     async function loadChantiers() { const r=await fetch('/api/chantiers'); chantiers=await r.json(); renderTable(); }
     function renderTable() {
@@ -127,5 +129,23 @@
     async function deleteChantier(id) { if(!confirm('Supprimer ce chantier ?')) return; await fetch(`/api/chantiers/${id}`, {method:'DELETE'}); loadChantiers(); }
     loadChantiers();
   </script>
+<!-- Bottom Nav Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 z-20 flex justify-around items-center h-16 px-2 safe-bottom">
+  <a href="index.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+    <i class="fas fa-chart-pie text-xl"></i><span class="truncate">Accueil</span>
+  </a>
+  <a href="ouvriers.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+    <i class="fas fa-users text-xl"></i><span class="truncate">Ouvriers</span>
+  </a>
+  <a href="pointage.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+    <i class="fas fa-clipboard-check text-xl"></i><span class="truncate">Pointage</span>
+  </a>
+  <a href="depenses.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+    <i class="fas fa-coins text-xl"></i><span class="truncate">Dépenses</span>
+  </a>
+  <a href="chantiers.html" class="flex flex-col items-center gap-0.5 text-xs text-blue-600 dark:text-blue-400 min-w-0">
+    <i class="fas fa-hard-hat text-xl"></i><span class="truncate">Plus</span>
+  </a>
+</nav>
 </body>
 </html>
