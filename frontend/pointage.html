@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AMSAN BTP - Pointage</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -85,6 +86,7 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
   </div>
   <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
     <button onclick="saveAllPointage()" class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-8 py-4 rounded-xl shadow-md text-base font-semibold flex items-center justify-center gap-2"><i class="fas fa-save"></i> Enregistrer tout</button>
+    <button onclick="exportExcel()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl shadow-md text-base font-semibold flex items-center justify-center gap-2"><i class="fas fa-file-excel"></i> Exporter Excel</button>
     <div id="saveMessage" class="text-sm hidden px-4 py-3 rounded-xl"></div>
   </div>
 </div>
@@ -185,6 +187,23 @@ async function saveAllPointage(){
     else{msg.textContent='✓ Pointage enregistré !';msg.className='text-sm bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-xl';}
   }catch(e){msg.textContent='Erreur réseau';msg.className='text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl';}
   btn.disabled=false;msg.classList.remove('hidden');setTimeout(()=>msg.classList.add('hidden'),3000);
+}
+function exportExcel(){
+  if(!ouvriersActifs||ouvriersActifs.length===0){alert('Veuillez d\'abord charger un pointage.');return;}
+  const date=document.getElementById('pointageDate').value;
+  const chantierNom=document.getElementById('chantierSelect').options[document.getElementById('chantierSelect').selectedIndex]?.text||'';
+  const rows=[];
+  document.querySelectorAll('#ouvriersList [data-ouvrier-id]').forEach(div=>{
+    const ouvrId=parseInt(div.dataset.ouvrierId);
+    const o=ouvriersActifs.find(x=>x.id===ouvrId);
+    const present=div.querySelector('button').textContent.trim().startsWith('Présent');
+    const hs=present?parseFloat(div.querySelector('.hs-field input').value)||0:0;
+    rows.push({'Date':date,'Chantier':chantierNom,'Ouvrier':[o?.prenom,o?.nom].filter(Boolean).join(' '),'Présent':present?'Oui':'Non','Heures supp.':hs});
+  });
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:25},{wch:25},{wch:10},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pointage');
+  XLSX.writeFile(wb,`pointage_${date}_AMSAN-BTP.xlsx`);
 }
 loadChantiers();
 

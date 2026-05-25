@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AMSAN BTP - Fiche de paie</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -93,8 +94,9 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
     </div>
   </div>
   <div id="ficheContent"></div>
-  <div class="mt-6 text-center no-print">
-    <button onclick="window.print()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 mx-auto"><i class="fas fa-print"></i> Imprimer</button>
+  <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center no-print">
+    <button onclick="window.print()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimer</button>
+    <button onclick="exportPDF()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
   </div>
 </div>
     </main>
@@ -136,6 +138,7 @@ document.addEventListener('click',function(e){
 </script>
 <script>
 
+let lastFicheData=null;
 const yearSel=document.getElementById('fAnnee');const y=new Date().getFullYear();
 for(let i=y-2;i<=y+1;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===y)o.selected=true;yearSel.appendChild(o);}
 document.getElementById('fMois').value=String(new Date().getMonth()+1).padStart(2,'0');
@@ -148,7 +151,7 @@ async function calculerFiche(){
   if(!r.ok){const e=await r.json();errEl.textContent=e.error||'Erreur';errEl.classList.remove('hidden');return;}
   afficherFiche(await r.json());
 }
-function afficherFiche(data){
+function afficherFiche(data){lastFicheData=data;
   const moisNom=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   document.getElementById('fichePaie').classList.remove('hidden');
   document.getElementById('ficheContent').innerHTML=`
@@ -182,6 +185,55 @@ function afficherFiche(data){
     </div>
     <p class="text-xs text-gray-400 dark:text-gray-500 text-center">Généré le ${new Date().toLocaleDateString('fr-FR')}</p>`;
   document.getElementById('fichePaie').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function exportPDF(){
+  if(!lastFicheData){alert('Veuillez d\'abord calculer une fiche de paie.');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const d=lastFicheData;
+  const moisNom=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const nom=[d.ouvrier.prenom,d.ouvrier.nom].filter(Boolean).join(' ');
+  const periode=moisNom[parseInt(d.periode.mois)-1]+' '+d.periode.annee;
+  // En-tête
+  doc.setFillColor(37,99,235);doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('AMSAN BTP',15,12);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text('Fiche de paie',15,20);
+  doc.setFontSize(11);doc.text(periode,195,16,{align:'right'});
+  // Infos ouvrier
+  doc.setTextColor(30,41,59);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('Ouvrier',15,38);doc.setFont('helvetica','normal');doc.text(nom,70,38);
+  doc.text('Poste',15,46);doc.setFont('helvetica','normal');doc.text(d.ouvrier.poste||'-',70,46);
+  doc.text('Salaire journalier',15,54);doc.text(parseFloat(d.salaire_journalier||0).toFixed(2)+' MAD',70,54);
+  // Ligne séparatrice
+  doc.setDrawColor(226,232,240);doc.line(15,60,195,60);
+  // Détail calcul
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(71,85,105);
+  const rows=[
+    ['Jours travaillés',`${d.jours_travailles}j × ${parseFloat(d.salaire_journalier||0).toFixed(2)} MAD`,parseFloat(d.salaire_normal||0).toFixed(2)+' MAD'],
+    ['Heures supplémentaires',`${parseFloat(d.total_hs||0).toFixed(1)}h × ${parseFloat(d.tarif_hs||0).toFixed(2)} MAD`,parseFloat(d.montant_hs||0).toFixed(2)+' MAD'],
+    ['Salaire brut','',parseFloat(d.salaire_brut||0).toFixed(2)+' MAD'],
+    ['Avances déduites','','- '+parseFloat(d.total_avances||0).toFixed(2)+' MAD'],
+  ];
+  let y=70;
+  rows.forEach((row,i)=>{
+    if(i===2){doc.setFillColor(239,246,255);doc.rect(14,y-5,182,10,'F');}
+    if(i===3){doc.setFillColor(254,242,242);doc.rect(14,y-5,182,10,'F');}
+    doc.setTextColor(i===2?37:i===3?220:71,i===2?99:i===3?38:85,i===2?235:i===3?38:105);
+    doc.setFont('helvetica',i===2?'bold':'normal');
+    doc.text(row[0],17,y);if(row[1])doc.text(row[1],80,y);doc.text(row[2],193,y,{align:'right'});
+    y+=12;
+  });
+  // Net à payer
+  doc.setFillColor(37,99,235);doc.rect(14,y-5,182,14,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('Net à payer',17,y+4);
+  doc.text(parseFloat(d.net_a_payer||0).toFixed(2)+' MAD',193,y+4,{align:'right'});
+  // Pied de page
+  doc.setFontSize(8);doc.setTextColor(148,163,184);doc.setFont('helvetica','normal');
+  doc.text('Généré le '+new Date().toLocaleDateString('fr-FR')+' — AMSAN BTP',105,285,{align:'center'});
+  doc.save(`fiche-paie_${nom.replace(/ /g,'_')}_${periode.replace(/ /g,'_')}.pdf`);
 }
 loadOuvriers();
 

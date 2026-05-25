@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AMSAN BTP - Dépenses</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -75,8 +76,12 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
 </div>
 
 <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4">
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
     <select id="filterChantier" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none"><option value="">Tous les chantiers</option></select>
+    <select id="filterCategorie" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      <option value="">Toutes catégories</option>
+      <option value="materiaux">Matériaux</option><option value="transport">Transport</option><option value="nourriture">Nourriture</option><option value="location">Location</option><option value="divers">Divers</option>
+    </select>
     <select id="filterMois" class="px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
       <option value="">Tous les mois</option>
       <option value="01">Janvier</option><option value="02">Février</option><option value="03">Mars</option><option value="04">Avril</option><option value="05">Mai</option><option value="06">Juin</option>
@@ -97,9 +102,12 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
       <tbody id="depensesTable"></tbody>
     </table>
   </div>
-  <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 dark:border-slate-700">
+  <div class="flex flex-wrap justify-between items-center gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-slate-700">
     <span class="text-sm text-gray-500 dark:text-gray-400" id="depCount">0 dépense(s)</span>
-    <span class="font-bold text-gray-800 dark:text-white">Total : <span id="totalMontant">0.00</span> MAD</span>
+    <div class="flex items-center gap-3">
+      <span class="font-bold text-gray-800 dark:text-white">Total : <span id="totalMontant">0.00</span> MAD</span>
+      <button onclick="exportExcel()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm"><i class="fas fa-file-excel"></i> Exporter Excel</button>
+    </div>
   </div>
 </div>
     </main>
@@ -157,9 +165,11 @@ async function loadChantiers(){
 }
 async function loadDepenses(){
   let url='/api/depenses?';
-  const c=document.getElementById('filterChantier').value,m=document.getElementById('filterMois').value,a=document.getElementById('filterAnnee').value;
+  const c=document.getElementById('filterChantier').value,cat=document.getElementById('filterCategorie').value,m=document.getElementById('filterMois').value,a=document.getElementById('filterAnnee').value;
   if(c)url+=`chantier_id=${c}&`;if(m&&a)url+=`mois=${m}&annee=${a}&`;
-  const r=await fetch(url);depenses=await r.json();render();
+  const r=await fetch(url);let all=await r.json();
+  if(cat)all=all.filter(d=>d.categorie===cat);
+  depenses=all;render();
 }
 function render(){
   let total=0;
@@ -196,7 +206,19 @@ async function addDepense(){
   document.getElementById('fMontant').value='';document.getElementById('fNote').value='';loadDepenses();
 }
 async function deleteDepense(id){if(!confirm('Supprimer ?'))return;await fetch(`/api/depenses/${id}`,{method:'DELETE'});loadDepenses();}
-['filterChantier','filterMois','filterAnnee'].forEach(id=>document.getElementById(id).addEventListener('change',loadDepenses));
+function exportExcel(){
+  if(!depenses||depenses.length===0){alert('Aucune dépense à exporter.');return;}
+  const rows=depenses.map(d=>({'Date':d.date,'Chantier':d.chantier_nom,'Catégorie':d.categorie,'Montant (MAD)':parseFloat(d.montant||0),'Note':d.note||''}));
+  const total=depenses.reduce((s,d)=>s+parseFloat(d.montant||0),0);
+  rows.push({'Date':'','Chantier':'','Catégorie':'TOTAL','Montant (MAD)':parseFloat(total.toFixed(2)),'Note':''});
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:25},{wch:14},{wch:16},{wch:30}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Dépenses');
+  const mois=document.getElementById('filterMois').value,annee=document.getElementById('filterAnnee').value;
+  const suffix=mois&&annee?`_${mois}-${annee}`:'';
+  XLSX.writeFile(wb,`depenses${suffix}_AMSAN-BTP.xlsx`);
+}
+['filterChantier','filterCategorie','filterMois','filterAnnee'].forEach(id=>document.getElementById(id).addEventListener('change',loadDepenses));
 loadChantiers();loadDepenses();
 
 </script>
