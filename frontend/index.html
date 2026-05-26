@@ -43,6 +43,7 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
 <a href="depenses.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-coins w-5 text-center"></i> Dépenses</a>
 <a href="avances.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hand-holding-usd w-5 text-center"></i> Avances</a>
 <a href="fiche-paie.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-file-invoice w-5 text-center"></i> Fiche de paie</a>
+<a href="rapport.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-chart-bar w-5 text-center"></i> Rapports</a>
 </nav>
     <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
       <button onclick="toggleDarkMode()" class="sidebar-link flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">
@@ -55,10 +56,23 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
     
   <header class="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700 p-4 flex items-center gap-3 sticky top-0 z-10">
     <button id="menuBtn" class="md:hidden text-gray-600 dark:text-gray-300 text-xl"><i class="fas fa-bars"></i></button>
-    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Tableau de bord</h2>
+    <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex-1">Tableau de bord</h2>
+    <!-- Recherche globale desktop -->
+    <div class="hidden md:block relative">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+      <input type="text" id="globalSearch" placeholder="Rechercher ouvrier, chantier..." class="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none w-72" autocomplete="off">
+      <div id="searchDropdown" class="hidden absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl w-80 z-50 max-h-64 overflow-y-auto"></div>
+    </div>
   </header>
     <main class="flex-1 p-4 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto w-full overflow-y-auto">
-      
+
+<!-- Recherche globale mobile -->
+<div class="md:hidden relative mb-4">
+  <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+  <input type="text" id="globalSearchMobile" placeholder="Rechercher ouvrier, chantier..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none" autocomplete="off">
+  <div id="searchDropdownMobile" class="hidden absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto"></div>
+</div>
+
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
   <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
     <div class="flex items-center justify-between mb-1">
@@ -115,6 +129,12 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
       <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Chantiers actifs</div>
     </div>
   </div>
+</div>
+
+<!-- Alertes À surveiller -->
+<div id="alertesSection" class="hidden mb-6">
+  <h3 class="font-semibold text-gray-800 dark:text-white mb-3 text-sm flex items-center gap-2"><i class="fas fa-exclamation-triangle text-amber-500"></i> À surveiller</h3>
+  <div id="alertesContent" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -178,6 +198,76 @@ document.addEventListener('click',function(e){
 <script>
 
 let presenceChart=null,depensesChart=null;
+let _ouvriers=[],_chantiers=[];
+
+// ── RECHERCHE GLOBALE ──
+function setupSearch(inputId,dropdownId){
+  const inp=document.getElementById(inputId);
+  const drop=document.getElementById(dropdownId);
+  if(!inp)return;
+  inp.addEventListener('input',()=>{
+    const q=inp.value.trim().toLowerCase();
+    if(q.length<2){drop.classList.add('hidden');return;}
+    const rO=_ouvriers.filter(o=>(o.nom+' '+(o.prenom||'')).toLowerCase().includes(q)).slice(0,5);
+    const rC=_chantiers.filter(c=>c.nom.toLowerCase().includes(q)).slice(0,5);
+    if(!rO.length&&!rC.length){drop.classList.add('hidden');return;}
+    drop.innerHTML=
+      (rO.length?`<div class="px-3 pt-2 pb-1 text-xs text-gray-400 uppercase tracking-wider">Ouvriers</div>`:'')
+      +rO.map(o=>`<a href="ouvriers.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 text-xs font-bold shrink-0">${(o.prenom||o.nom||'?')[0].toUpperCase()}</div>
+        <div><div class="text-sm font-medium text-gray-800 dark:text-gray-200">${[o.prenom,o.nom].filter(Boolean).join(' ')}</div><div class="text-xs text-gray-400">${o.poste||'Ouvrier'}</div></div>
+      </a>`).join('')
+      +(rC.length?`<div class="px-3 pt-2 pb-1 text-xs text-gray-400 uppercase tracking-wider border-t border-gray-100 dark:border-slate-700 mt-1">Chantiers</div>`:'')
+      +rC.map(c=>`<a href="chantiers.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-orange-600 text-xs font-bold shrink-0"><i class="fas fa-hard-hat text-xs"></i></div>
+        <div><div class="text-sm font-medium text-gray-800 dark:text-gray-200">${c.nom}</div><div class="text-xs text-gray-400">${c.statut||''}</div></div>
+      </a>`).join('');
+    drop.classList.remove('hidden');
+  });
+  inp.addEventListener('blur',()=>setTimeout(()=>drop.classList.add('hidden'),200));
+  inp.addEventListener('focus',()=>inp.value.length>=2&&drop.innerHTML&&drop.classList.remove('hidden'));
+}
+
+// ── ALERTES ──
+const SEUIL_AVANCES=1000;
+function buildAlertes(avs,chants,allP,mois,annee){
+  const prefix=annee+'-'+mois;
+  const alerts=[];
+  // Ouvriers avec avances du mois > seuil
+  const avMois=avs.filter(a=>a.date&&a.date.startsWith(prefix));
+  const avByOuvrier={};
+  avMois.forEach(a=>{avByOuvrier[a.ouvrier_id]=(avByOuvrier[a.ouvrier_id]||0)+parseFloat(a.montant||0);});
+  Object.entries(avByOuvrier).filter(([,t])=>t>=SEUIL_AVANCES).forEach(([oid,t])=>{
+    const av=avMois.find(a=>a.ouvrier_id==oid);
+    alerts.push({type:'avance',nom:av?.ouvrier_nom||'Ouvrier #'+oid,val:t.toFixed(2)+' MAD d\'avances ce mois',color:'red'});
+  });
+  // Chantiers actifs sans pointage depuis 30 jours
+  const now=new Date();
+  chants.filter(c=>c.statut==='actif').forEach(c=>{
+    const dernierP=allP.filter(p=>p.chantier_id===c.id||p.chantier_nom===c.nom).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    if(!dernierP){alerts.push({type:'chantier',nom:c.nom,val:'Aucun pointage enregistré',color:'amber'});return;}
+    const diff=(now-new Date(dernierP.date))/(1000*60*60*24);
+    if(diff>30)alerts.push({type:'chantier',nom:c.nom,val:`Dernier pointage il y a ${Math.round(diff)} jours`,color:'amber'});
+  });
+
+  const sec=document.getElementById('alertesSection');
+  const cont=document.getElementById('alertesContent');
+  if(!alerts.length){sec.classList.add('hidden');return;}
+  sec.classList.remove('hidden');
+  cont.innerHTML=alerts.map(a=>{
+    const icon=a.type==='avance'?'fa-hand-holding-usd':'fa-hard-hat';
+    const link=a.type==='avance'?'avances.html':'chantiers.html';
+    const bg=a.color==='red'?'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800':'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800';
+    const ic=a.color==='red'?'text-red-500':'text-amber-500';
+    const txt=a.color==='red'?'text-red-700 dark:text-red-300':'text-amber-700 dark:text-amber-300';
+    const sub=a.color==='red'?'text-red-500 dark:text-red-400':'text-amber-500 dark:text-amber-400';
+    return `<a href="${link}" class="${bg} border rounded-xl p-3 flex items-center gap-3 hover:opacity-80 transition-opacity">
+      <div class="${ic} text-xl w-8 text-center shrink-0"><i class="fas ${icon}"></i></div>
+      <div><div class="font-semibold text-sm ${txt}">${a.nom}</div><div class="text-xs ${sub}">${a.val}</div></div>
+    </a>`;
+  }).join('');
+}
+
 async function loadDashboard(){
   const today=new Date().toISOString().split('T')[0];
   const month=String(new Date().getMonth()+1).padStart(2,'0');
@@ -189,6 +279,9 @@ async function loadDashboard(){
       fetch('/api/pointages'),fetch('/api/depenses'),fetch('/api/ouvriers'),fetch('/api/chantiers'),fetch('/api/avances')
     ]);
     const allP=await pRes.json(),deps=await dRes.json(),ouvs=await oRes.json(),chants=await cRes.json(),avs=await aRes.json();
+    _ouvriers=ouvs;_chantiers=chants;
+    setupSearch('globalSearch','searchDropdown');
+    setupSearch('globalSearchMobile','searchDropdownMobile');
     // Aujourd'hui
     const todayP=allP.filter(p=>p.date===today);
     document.getElementById('presentsToday').textContent=todayP.filter(p=>p.present).length;
@@ -223,6 +316,7 @@ async function loadDashboard(){
         <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">${parseFloat(d.montant||0).toFixed(2)} MAD</span>
       </div>`).join('');
     buildCharts(allP,monthD);
+    buildAlertes(avs,chants,allP,month,String(year));
   }catch(e){console.error(e);}
 }
 function buildCharts(pointages,monthD){

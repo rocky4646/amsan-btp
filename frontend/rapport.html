@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AMSAN BTP - Rapport mensuel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .dark .card-hover{background:#1e293b}
+    .card-hover:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.08)}
+    .sidebar-link{transition:all .2s ease}
+    .dark .sidebar-link:hover{background:rgba(59,130,246,0.1);color:#93c5fd}
+    input,select,textarea{-webkit-appearance:none}
+  </style>
+  <style>@media print{body *{visibility:hidden}#rapportContent,#rapportContent *{visibility:visible}#rapportContent{position:absolute;left:0;top:0;width:100%}.no-print{display:none!important}}</style>
+  <script>if(localStorage.getItem('darkMode')==='true')document.documentElement.classList.add('dark');</script>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 transition-colors duration-200">
+
+<div id="overlay" class="md:hidden fixed inset-0 bg-black/50 z-[9] hidden" onclick="closeSidebar()"></div>
+<script>
+function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('overlay').classList.add('hidden');}
+document.getElementById('menuBtn')?.addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('-translate-x-full');document.getElementById('overlay').classList.toggle('hidden');});
+function toggleDarkMode(){const h=document.documentElement;h.classList.toggle('dark');localStorage.setItem('darkMode',h.classList.contains('dark'));}
+</script>
+<div class="flex h-screen">
+
+  <aside id="sidebar" class="bg-white dark:bg-slate-800 w-64 fixed h-full shadow-lg z-10 -translate-x-full md:translate-x-0 transition-all duration-300 border-r border-gray-200 dark:border-slate-700">
+    <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-lg">A</div>
+        <div><h1 class="text-lg font-bold text-gray-800 dark:text-white">AMSAN BTP</h1><p class="text-xs text-gray-500 dark:text-gray-400">Gestion de chantier</p></div>
+      </div>
+    </div>
+    <nav class="p-3 space-y-1">
+      <a href="index.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-chart-pie w-5 text-center"></i> Tableau de bord</a>
+      <a href="ouvriers.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-users w-5 text-center"></i> Ouvriers</a>
+      <a href="chantiers.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hard-hat w-5 text-center"></i> Chantiers</a>
+      <a href="pointage.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-clipboard-check w-5 text-center"></i> Pointage</a>
+      <a href="depenses.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-coins w-5 text-center"></i> Dépenses</a>
+      <a href="avances.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hand-holding-usd w-5 text-center"></i> Avances</a>
+      <a href="fiche-paie.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-file-invoice w-5 text-center"></i> Fiche de paie</a>
+      <a href="rapport.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"><i class="fas fa-chart-bar w-5 text-center"></i> Rapports</a>
+    </nav>
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
+      <button onclick="toggleDarkMode()" class="sidebar-link flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">
+        <i class="fas fa-moon w-5 text-center dark:hidden"></i><i class="fas fa-sun w-5 text-center hidden dark:inline"></i>
+        <span class="dark:hidden">Mode sombre</span><span class="hidden dark:inline">Mode clair</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    <header class="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700 p-4 flex items-center gap-3 sticky top-0 z-10">
+      <button id="menuBtn" class="md:hidden text-gray-600 dark:text-gray-300 text-xl"><i class="fas fa-bars"></i></button>
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Rapport mensuel</h2>
+    </header>
+    <main class="flex-1 p-4 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto w-full overflow-y-auto">
+
+<!-- Formulaire -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 mb-4 no-print">
+  <h3 class="font-semibold text-gray-800 dark:text-white mb-3 text-sm flex items-center gap-2"><i class="fas fa-filter text-blue-500"></i> Paramètres du rapport</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div>
+      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Chantier</label>
+      <select id="rChantier" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none"><option value="">Sélectionner un chantier</option></select>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Mois</label>
+      <select id="rMois" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+        <option value="01">Janvier</option><option value="02">Février</option><option value="03">Mars</option><option value="04">Avril</option>
+        <option value="05">Mai</option><option value="06">Juin</option><option value="07">Juillet</option><option value="08">Août</option>
+        <option value="09">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Année</label>
+      <select id="rAnnee" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none"></select>
+    </div>
+  </div>
+  <div id="rError" class="mt-2 text-red-500 text-sm hidden"></div>
+  <button onclick="genererRapport()" class="mt-3 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl shadow-md flex items-center justify-center gap-2"><i class="fas fa-chart-bar"></i> Générer le rapport</button>
+</div>
+
+<!-- Contenu du rapport -->
+<div id="rapportContent" class="hidden">
+
+  <!-- En-tête -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white" id="rTitre">—</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400" id="rSousTitre">—</p>
+      </div>
+      <div class="flex gap-2 no-print">
+        <button onclick="window.print()" class="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-slate-600"><i class="fas fa-print"></i> Imprimer</button>
+        <button onclick="exportPDF()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow-sm"><i class="fas fa-file-pdf"></i> PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
+      <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Dépenses totales</div>
+      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="rDepTotal">—</div>
+      <div class="text-xs text-gray-400 mt-0.5">MAD</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border-l-4 border-emerald-500">
+      <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Jours de présence</div>
+      <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="rJoursTotal">—</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border-l-4 border-amber-500">
+      <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Heures supp.</div>
+      <div class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="rHSTotal">—</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 border-l-4 border-red-400">
+      <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Avances versées</div>
+      <div class="text-2xl font-bold text-red-500 dark:text-red-400" id="rAvTotal">—</div>
+      <div class="text-xs text-gray-400 mt-0.5">MAD</div>
+    </div>
+  </div>
+
+  <!-- Dépenses par catégorie -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 mb-4">
+    <h3 class="font-semibold text-gray-800 dark:text-white mb-3 text-sm flex items-center gap-2"><i class="fas fa-coins text-emerald-500"></i> Dépenses par catégorie</h3>
+    <div id="rDepCat" class="space-y-3"></div>
+  </div>
+
+  <!-- Ouvriers -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 mb-4">
+    <h3 class="font-semibold text-gray-800 dark:text-white mb-3 text-sm flex items-center gap-2"><i class="fas fa-users text-blue-500"></i> Ouvriers affectés</h3>
+    <div id="rOuvriersCards" class="md:hidden space-y-3"></div>
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-gray-300">
+          <tr>
+            <th class="text-left p-4 font-medium">Ouvrier</th>
+            <th class="text-left p-4 font-medium">Jours présents</th>
+            <th class="text-left p-4 font-medium">Heures supp.</th>
+            <th class="text-left p-4 font-medium">Avances (MAD)</th>
+          </tr>
+        </thead>
+        <tbody id="rOuvriersTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /rapportContent -->
+
+    </main>
+  </div>
+</div>
+
+<!-- MORE DRAWER -->
+<div id="moreDrawer" class="md:hidden fixed bottom-16 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 z-30 hidden shadow-2xl rounded-t-2xl">
+  <div class="p-2 flex justify-around">
+    <a href="chantiers.html" class="flex flex-col items-center gap-1 p-4 rounded-xl text-sm text-gray-600 dark:text-gray-300"><i class="fas fa-hard-hat text-2xl text-orange-500"></i><span>Chantiers</span></a>
+    <a href="avances.html" class="flex flex-col items-center gap-1 p-4 rounded-xl text-sm text-gray-600 dark:text-gray-300"><i class="fas fa-hand-holding-usd text-2xl text-amber-500"></i><span>Avances</span></a>
+    <a href="rapport.html" class="flex flex-col items-center gap-1 p-4 rounded-xl text-sm text-blue-600 font-medium"><i class="fas fa-chart-bar text-2xl text-blue-500"></i><span>Rapports</span></a>
+    <button onclick="toggleDarkMode()" class="flex flex-col items-center gap-1 p-4 rounded-xl text-sm text-gray-600 dark:text-gray-300"><i class="fas fa-moon text-2xl text-slate-500 dark:hidden"></i><i class="fas fa-sun text-2xl text-yellow-400 hidden dark:inline"></i><span class="dark:hidden">Sombre</span><span class="hidden dark:inline">Clair</span></button>
+  </div>
+</div>
+<!-- BOTTOM NAV -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 z-20 flex justify-around items-center h-16 px-1">
+  <a href="index.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-chart-pie text-xl"></i><span>Accueil</span></a>
+  <a href="ouvriers.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-users text-xl"></i><span>Ouvriers</span></a>
+  <a href="pointage.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-clipboard-check text-xl"></i><span>Pointage</span></a>
+  <a href="depenses.html" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-coins text-xl"></i><span>Dépenses</span></a>
+  <button onclick="toggleMore()" class="flex flex-col items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400" id="moreBtn"><i class="fas fa-ellipsis-h text-xl"></i><span>Plus</span></button>
+</nav>
+<script>
+function toggleMore(){
+  const d=document.getElementById('moreDrawer');
+  d.classList.toggle('hidden');
+  document.getElementById('moreBtn').querySelector('i').className=d.classList.contains('hidden')?'fas fa-ellipsis-h text-xl':'fas fa-times text-xl';
+}
+document.addEventListener('click',function(e){
+  const d=document.getElementById('moreDrawer'),btn=document.getElementById('moreBtn');
+  if(!d.classList.contains('hidden')&&!d.contains(e.target)&&!btn.contains(e.target)){d.classList.add('hidden');btn.querySelector('i').className='fas fa-ellipsis-h text-xl';}
+});
+</script>
+<script>
+const MOIS_NOM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const CAT_LABEL={materiaux:'Matériaux',transport:'Transport',nourriture:'Nourriture',location:'Location',divers:'Divers'};
+const CAT_COLORS={materiaux:'bg-blue-100 text-blue-700',transport:'bg-amber-100 text-amber-700',nourriture:'bg-emerald-100 text-emerald-700',location:'bg-violet-100 text-violet-700',divers:'bg-gray-100 text-gray-600'};
+const CAT_LIST=['materiaux','transport','nourriture','location','divers'];
+
+const yearSel=document.getElementById('rAnnee');const y=new Date().getFullYear();
+for(let i=y-2;i<=y+1;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===y)o.selected=true;yearSel.appendChild(o);}
+document.getElementById('rMois').value=String(new Date().getMonth()+1).padStart(2,'0');
+
+let lastRapportData=null;
+
+async function loadChantiers(){
+  const r=await fetch('/api/chantiers');const list=await r.json();
+  const sel=document.getElementById('rChantier');
+  sel.innerHTML='<option value="">Sélectionner un chantier</option>'+list.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+}
+
+async function genererRapport(){
+  const chantier_id=document.getElementById('rChantier').value;
+  const mois=document.getElementById('rMois').value;
+  const annee=document.getElementById('rAnnee').value;
+  const errEl=document.getElementById('rError');errEl.classList.add('hidden');
+  if(!chantier_id){errEl.textContent='Veuillez sélectionner un chantier.';errEl.classList.remove('hidden');return;}
+
+  const [depRes,pointRes,avRes,chantRes]=await Promise.all([
+    fetch(`/api/depenses?chantier_id=${chantier_id}&mois=${mois}&annee=${annee}`),
+    fetch(`/api/pointages?chantier_id=${chantier_id}`),
+    fetch(`/api/avances?mois=${mois}&annee=${annee}`),
+    fetch('/api/chantiers')
+  ]);
+  const depenses=await depRes.json();
+  const allPointages=await pointRes.json();
+  const avances=await avRes.json();
+  const chantiers=await chantRes.json();
+
+  const prefix=`${annee}-${mois}`;
+  const pointages=allPointages.filter(p=>p.date.startsWith(prefix));
+  const chantier=chantiers.find(c=>c.id==chantier_id);
+
+  lastRapportData={depenses,pointages,avances,chantier,mois,annee};
+  afficherRapport(lastRapportData);
+}
+
+function afficherRapport({depenses,pointages,avances,chantier,mois,annee}){
+  const periode=MOIS_NOM[parseInt(mois)-1]+' '+annee;
+  document.getElementById('rTitre').textContent=chantier?.nom||'Chantier';
+  document.getElementById('rSousTitre').textContent='Rapport mensuel — '+periode;
+
+  const presents=pointages.filter(p=>p.present);
+  const totalDep=depenses.reduce((s,d)=>s+parseFloat(d.montant||0),0);
+  const totalJours=presents.length;
+  const totalHS=presents.reduce((s,p)=>s+parseFloat(p.hs||0),0);
+
+  const ouvrierIds=[...new Set(presents.map(p=>p.ouvrier_id))];
+  const avancesOuvriers=avances.filter(a=>ouvrierIds.includes(a.ouvrier_id));
+  const totalAv=avancesOuvriers.reduce((s,a)=>s+parseFloat(a.montant||0),0);
+
+  document.getElementById('rDepTotal').textContent=totalDep.toFixed(2);
+  document.getElementById('rJoursTotal').textContent=totalJours;
+  document.getElementById('rHSTotal').textContent=totalHS.toFixed(1)+'h';
+  document.getElementById('rAvTotal').textContent=totalAv.toFixed(2);
+
+  // Dépenses par catégorie
+  const catTotals=CAT_LIST.map(c=>({c,t:depenses.filter(d=>d.categorie===c).reduce((s,d)=>s+parseFloat(d.montant||0),0)})).filter(x=>x.t>0);
+  document.getElementById('rDepCat').innerHTML=catTotals.length===0
+    ?'<p class="text-sm text-gray-400 italic">Aucune dépense enregistrée ce mois.</p>'
+    :catTotals.map(({c,t})=>{
+      const pct=totalDep>0?Math.round(t/totalDep*100):0;
+      return `<div class="flex items-center gap-3">
+        <span class="text-xs px-2 py-0.5 rounded-full w-24 text-center shrink-0 ${CAT_COLORS[c]}">${CAT_LABEL[c]}</span>
+        <div class="flex-1 bg-gray-100 dark:bg-slate-700 rounded-full h-2.5">
+          <div class="bg-blue-500 h-2.5 rounded-full transition-all" style="width:${pct}%"></div>
+        </div>
+        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 w-28 text-right shrink-0">${t.toFixed(2)} MAD</span>
+        <span class="text-xs text-gray-400 w-8 text-right shrink-0">${pct}%</span>
+      </div>`;
+    }).join('');
+
+  // Résumé par ouvrier
+  const ouvrierSummary=ouvrierIds.map(oid=>{
+    const rows=presents.filter(p=>p.ouvrier_id===oid);
+    const nom=[rows[0]?.ouvrier_prenom,rows[0]?.ouvrier_nom].filter(Boolean).join(' ');
+    const jours=rows.length;
+    const hs=rows.reduce((s,p)=>s+parseFloat(p.hs||0),0);
+    const av=avancesOuvriers.filter(a=>a.ouvrier_id===oid).reduce((s,a)=>s+parseFloat(a.montant||0),0);
+    return {oid,nom,jours,hs,av};
+  }).sort((a,b)=>b.jours-a.jours);
+
+  document.getElementById('rOuvriersCards').innerHTML=ouvrierSummary.length===0
+    ?'<p class="text-sm text-gray-400 italic">Aucun ouvrier présent ce mois.</p>'
+    :ouvrierSummary.map(o=>`
+      <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-3">
+        <div class="font-semibold text-gray-800 dark:text-gray-200 mb-2">${o.nom}</div>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+          <div class="bg-white dark:bg-slate-700 rounded-lg p-2">
+            <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">${o.jours}</div>
+            <div class="text-gray-400 mt-0.5">Jours</div>
+          </div>
+          <div class="bg-white dark:bg-slate-700 rounded-lg p-2">
+            <div class="text-xl font-bold text-amber-600 dark:text-amber-400">${o.hs.toFixed(1)}</div>
+            <div class="text-gray-400 mt-0.5">HS</div>
+          </div>
+          <div class="bg-white dark:bg-slate-700 rounded-lg p-2">
+            <div class="text-base font-bold ${o.av>0?'text-red-500 dark:text-red-400':'text-gray-500 dark:text-gray-400'}">${o.av.toFixed(0)}</div>
+            <div class="text-gray-400 mt-0.5">Avances</div>
+          </div>
+        </div>
+      </div>`).join('');
+
+  document.getElementById('rOuvriersTable').innerHTML=ouvrierSummary.map(o=>`
+    <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/30">
+      <td class="p-4 font-medium text-gray-800 dark:text-gray-200">${o.nom}</td>
+      <td class="p-4 text-gray-700 dark:text-gray-300">${o.jours} jour(s)</td>
+      <td class="p-4 text-gray-700 dark:text-gray-300">${o.hs.toFixed(1)}h</td>
+      <td class="p-4 font-semibold ${o.av>0?'text-red-500 dark:text-red-400':'text-gray-400'}">${o.av.toFixed(2)}</td>
+    </tr>`).join('');
+
+  document.getElementById('rapportContent').classList.remove('hidden');
+  document.getElementById('rapportContent').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function exportPDF(){
+  if(!lastRapportData){return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const {depenses,pointages,avances,chantier,mois,annee}=lastRapportData;
+  const periode=MOIS_NOM[parseInt(mois)-1]+' '+annee;
+  const presents=pointages.filter(p=>p.present);
+  const ouvrierIds=[...new Set(presents.map(p=>p.ouvrier_id))];
+  const avancesOuvriers=avances.filter(a=>ouvrierIds.includes(a.ouvrier_id));
+  const totalDep=depenses.reduce((s,d)=>s+parseFloat(d.montant||0),0);
+  const totalJours=presents.length;
+  const totalHS=presents.reduce((s,p)=>s+parseFloat(p.hs||0),0);
+  const totalAv=avancesOuvriers.reduce((s,a)=>s+parseFloat(a.montant||0),0);
+
+  // En-tête
+  doc.setFillColor(37,99,235);doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('AMSAN BTP — Rapport mensuel',15,12);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text(`${chantier?.nom||''} — ${periode}`,15,21);
+  doc.text(new Date().toLocaleDateString('fr-FR'),195,21,{align:'right'});
+
+  // KPIs
+  doc.setTextColor(30,41,59);
+  let y=38;
+  [
+    ['Dépenses totales',totalDep.toFixed(2)+' MAD'],
+    ['Jours de présence',String(totalJours)],
+    ['Heures supplémentaires',totalHS.toFixed(1)+'h'],
+    ['Avances versées',totalAv.toFixed(2)+' MAD'],
+  ].forEach(([k,v],i)=>{
+    const x=15+(i%2)*97;if(i===2)y+=14;
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(k,x,y);
+    doc.setFont('helvetica','bold');doc.text(v,x+90,y,{align:'right'});
+  });
+  y+=14;doc.setDrawColor(226,232,240);doc.line(15,y,195,y);y+=6;
+
+  // Dépenses par catégorie
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30,41,59);doc.text('Dépenses par catégorie',15,y);y+=7;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  CAT_LIST.forEach(c=>{
+    const t=depenses.filter(d=>d.categorie===c).reduce((s,d)=>s+parseFloat(d.montant||0),0);
+    if(t>0){
+      const pct=totalDep>0?Math.round(t/totalDep*100):0;
+      doc.text(CAT_LABEL[c],17,y);doc.text(`${t.toFixed(2)} MAD (${pct}%)`,193,y,{align:'right'});y+=6;
+    }
+  });
+  y+=4;doc.line(15,y,195,y);y+=6;
+
+  // Ouvriers
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Ouvriers affectés',15,y);y+=7;
+  doc.setFillColor(248,250,252);doc.rect(14,y-5,182,8,'F');
+  doc.setFontSize(9);doc.text('Ouvrier',17,y);doc.text('Jours',105,y);doc.text('HS',135,y);doc.text('Avances (MAD)',193,y,{align:'right'});
+  y+=8;doc.setFont('helvetica','normal');
+  ouvrierIds.forEach(oid=>{
+    const rows=presents.filter(p=>p.ouvrier_id===oid);
+    const nom=[rows[0]?.ouvrier_prenom,rows[0]?.ouvrier_nom].filter(Boolean).join(' ');
+    const jours=rows.length;
+    const hs=rows.reduce((s,p)=>s+parseFloat(p.hs||0),0);
+    const av=avancesOuvriers.filter(a=>a.ouvrier_id===oid).reduce((s,a)=>s+parseFloat(a.montant||0),0);
+    doc.text(nom,17,y);doc.text(String(jours),105,y);doc.text(hs.toFixed(1)+'h',135,y);doc.text(av.toFixed(2),193,y,{align:'right'});
+    y+=6;if(y>270){doc.addPage();y=20;}
+  });
+
+  doc.setFontSize(8);doc.setTextColor(148,163,184);
+  doc.text('Généré le '+new Date().toLocaleDateString('fr-FR')+' — AMSAN BTP',105,285,{align:'center'});
+  doc.save(`rapport_${(chantier?.nom||'chantier').replace(/ /g,'_')}_${mois}-${annee}.pdf`);
+}
+
+loadChantiers();
+</script>
+</body>
+</html>

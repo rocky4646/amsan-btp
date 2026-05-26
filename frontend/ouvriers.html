@@ -43,6 +43,7 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
 <a href="depenses.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-coins w-5 text-center"></i> Dépenses</a>
 <a href="avances.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-hand-holding-usd w-5 text-center"></i> Avances</a>
 <a href="fiche-paie.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-file-invoice w-5 text-center"></i> Fiche de paie</a>
+<a href="rapport.html" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"><i class="fas fa-chart-bar w-5 text-center"></i> Rapports</a>
 </nav>
     <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
       <button onclick="toggleDarkMode()" class="sidebar-link flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">
@@ -79,6 +80,47 @@ function toggleDarkMode(){{const h=document.documentElement;h.classList.toggle('
       </thead>
       <tbody id="ouvriersTable"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- MODAL HISTORIQUE -->
+<div id="historiqueModal" class="fixed inset-0 bg-black/50 z-50 hidden items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+  <div class="bg-white dark:bg-slate-800 rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-lg max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-slate-700 shrink-0">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white" id="histNom">Historique</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Pointages mensuels</p>
+      </div>
+      <button onclick="closeHistorique()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-500"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- Sélecteur mois/année -->
+    <div class="p-4 border-b border-gray-100 dark:border-slate-700 shrink-0">
+      <div class="flex gap-3">
+        <select id="histMois" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm">
+          <option value="01">Janvier</option><option value="02">Février</option><option value="03">Mars</option><option value="04">Avril</option>
+          <option value="05">Mai</option><option value="06">Juin</option><option value="07">Juillet</option><option value="08">Août</option>
+          <option value="09">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+        </select>
+        <select id="histAnnee" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"></select>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-3 p-4 border-b border-gray-100 dark:border-slate-700 shrink-0">
+      <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
+        <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400" id="histPresents">—</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Présent(s)</div>
+      </div>
+      <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 text-center">
+        <div class="text-xl font-bold text-red-500 dark:text-red-400" id="histAbsents">—</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Absent(s)</div>
+      </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-center">
+        <div class="text-xl font-bold text-amber-600 dark:text-amber-400" id="histHS">—</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">HS total</div>
+      </div>
+    </div>
+    <!-- Liste pointages -->
+    <div id="histList" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
   </div>
 </div>
 
@@ -145,6 +187,51 @@ document.addEventListener('click',function(e){
 </script>
 <script>
 
+// Historique init
+(function(){
+  const yearSel=document.getElementById('histAnnee');const y=new Date().getFullYear();
+  for(let i=y-2;i<=y+1;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===y)o.selected=true;yearSel.appendChild(o);}
+  document.getElementById('histMois').value=String(new Date().getMonth()+1).padStart(2,'0');
+  ['histMois','histAnnee'].forEach(id=>document.getElementById(id).addEventListener('change',reloadHistorique));
+})();
+let currentHistId=null;
+async function openHistorique(id,nom){
+  currentHistId=id;
+  document.getElementById('histNom').textContent=nom;
+  document.getElementById('historiqueModal').classList.remove('hidden');
+  document.getElementById('historiqueModal').classList.add('flex');
+  await reloadHistorique();
+}
+function closeHistorique(){document.getElementById('historiqueModal').classList.add('hidden');document.getElementById('historiqueModal').classList.remove('flex');}
+async function reloadHistorique(){
+  if(!currentHistId)return;
+  const mois=document.getElementById('histMois').value;
+  const annee=document.getElementById('histAnnee').value;
+  const r=await fetch(`/api/pointages?ouvrier_id=${currentHistId}`);
+  const all=await r.json();
+  const prefix=`${annee}-${mois}`;
+  const pts=all.filter(p=>p.date.startsWith(prefix)).sort((a,b)=>a.date.localeCompare(b.date));
+  const presents=pts.filter(p=>p.present);
+  const absents=pts.filter(p=>!p.present);
+  const totalHS=presents.reduce((s,p)=>s+parseFloat(p.hs||0),0);
+  document.getElementById('histPresents').textContent=presents.length;
+  document.getElementById('histAbsents').textContent=absents.length;
+  document.getElementById('histHS').textContent=totalHS.toFixed(1)+'h';
+  document.getElementById('histList').innerHTML=pts.length===0
+    ?'<p class="text-sm text-gray-400 italic text-center py-6">Aucun pointage enregistré ce mois.</p>'
+    :pts.map(p=>`
+      <div class="flex items-center justify-between py-2.5 px-3 rounded-xl ${p.present?'bg-emerald-50 dark:bg-emerald-900/20':'bg-red-50 dark:bg-red-900/10'}">
+        <div class="flex items-center gap-3">
+          <i class="fas ${p.present?'fa-check-circle text-emerald-500':'fa-times-circle text-red-400'} text-base"></i>
+          <div>
+            <div class="text-sm font-medium text-gray-800 dark:text-gray-200">${new Date(p.date+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">${p.chantier_nom||''}</div>
+          </div>
+        </div>
+        ${p.present&&parseFloat(p.hs||0)>0?`<span class="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">+${parseFloat(p.hs).toFixed(1)}h HS</span>`:''}
+      </div>`).join('');
+}
+
 let ouvriers=[];
 async function loadOuvriers(){const r=await fetch('/api/ouvriers');ouvriers=await r.json();render();}
 function render(){
@@ -167,7 +254,8 @@ function render(){
       ${o.telephone?`<div class="text-sm text-gray-500 dark:text-gray-400 mb-3"><i class="fas fa-phone text-xs mr-1"></i>${o.telephone}</div>`:''}
       <div class="flex gap-2">
         <button onclick="editOuvrier(${o.id})" class="flex-1 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium"><i class="fas fa-edit mr-1"></i>Modifier</button>
-        <button onclick="toggleActif(${o.id})" class="flex-1 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-sm font-medium"><i class="fas ${o.actif?'fa-eye-slash':'fa-eye'} mr-1"></i>${o.actif?'Désact.':'Activer'}</button>
+        <button onclick="openHistorique(${o.id},'${[o.prenom,o.nom].filter(Boolean).join(' ')}')" class="flex-1 py-2 rounded-xl bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 text-sm font-medium"><i class="fas fa-calendar-alt mr-1"></i>Historique</button>
+        <button onclick="toggleActif(${o.id})" class="px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"><i class="fas ${o.actif?'fa-eye-slash':'fa-eye'}"></i></button>
         <button onclick="deleteOuvrier(${o.id})" class="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400"><i class="fas fa-trash"></i></button>
       </div>
     </div>`).join('');
@@ -182,10 +270,11 @@ function render(){
       <td class="p-4 text-gray-800 dark:text-gray-200">${parseFloat(o.salaire_journalier||0).toFixed(2)}</td>
       <td class="p-4 text-gray-800 dark:text-gray-200">${parseFloat(o.tarif_hs||0).toFixed(2)}</td>
       <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-medium ${o.actif?'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400':'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}">${o.actif?'Actif':'Inactif'}</span></td>
-      <td class="p-4 flex gap-2">
-        <button onclick="editOuvrier(${o.id})" class="text-blue-500 hover:text-blue-700 dark:text-blue-400"><i class="fas fa-edit"></i></button>
-        <button onclick="toggleActif(${o.id})" class="text-amber-500 hover:text-amber-700 dark:text-amber-400"><i class="fas ${o.actif?'fa-eye-slash':'fa-eye'}"></i></button>
-        <button onclick="deleteOuvrier(${o.id})" class="text-red-500 hover:text-red-700 dark:text-red-400"><i class="fas fa-trash"></i></button>
+      <td class="p-4 flex gap-3">
+        <button onclick="editOuvrier(${o.id})" class="text-blue-500 hover:text-blue-700 dark:text-blue-400" title="Modifier"><i class="fas fa-edit"></i></button>
+        <button onclick="openHistorique(${o.id},'${[o.prenom,o.nom].filter(Boolean).join(' ')}')" class="text-violet-500 hover:text-violet-700 dark:text-violet-400" title="Historique pointage"><i class="fas fa-calendar-alt"></i></button>
+        <button onclick="toggleActif(${o.id})" class="text-amber-500 hover:text-amber-700 dark:text-amber-400" title="${o.actif?'Désactiver':'Activer'}"><i class="fas ${o.actif?'fa-eye-slash':'fa-eye'}"></i></button>
+        <button onclick="deleteOuvrier(${o.id})" class="text-red-500 hover:text-red-700 dark:text-red-400" title="Supprimer"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`).join('');
 }
